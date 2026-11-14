@@ -1,0 +1,114 @@
+{
+  "skill": "fin-proxy-optimizer",
+  "version": "0.1.0",
+  "summary": "二维单肋稳态导热求解 + 参数扫描 + 代理模型寻优",
+  "units": {
+    "length": "m",
+    "temperature": "K",
+    "conductivity": "W/(m*K)",
+    "h": "W/(m^2*K)",
+    "heat_flux": "W/m (单位展向深度)",
+    "heat_flux_density": "W/m^3"
+  },
+
+  "inputs": {
+    "L": {
+      "type": "number",
+      "unit": "m",
+      "range": [0.01, 0.2],
+      "default": 0.05,
+      "desc": "肋高（沿导热方向）"
+    },
+    "t": {
+      "type": "number",
+      "unit": "m",
+      "range": [0.0005, 0.01],
+      "default": 0.002,
+      "desc": "肋厚"
+    },
+    "k": {
+      "type": "number",
+      "unit": "W/(m*K)",
+      "range": [1, 500],
+      "default": 200,
+      "desc": "材料导热系数（铝≈200，铜≈400，钢≈45）"
+    },
+    "h": {
+      "type": "number",
+      "unit": "W/(m^2*K)",
+      "range": [1, 500],
+      "default": 50,
+      "desc": "对流换热系数（自然对流 5~25，强制风冷 25~100）"
+    },
+    "tb": {
+      "type": "number",
+      "unit": "K",
+      "range": [200, 1500],
+      "default": 350,
+      "desc": "根部温度"
+    },
+    "tinf": {
+      "type": "number",
+      "unit": "K",
+      "range": [200, 400],
+      "default": 300,
+      "desc": "环境温度"
+    },
+    "nx": {
+      "type": "integer",
+      "range": [21, 1201],
+      "default": 201,
+      "desc": "长度方向网格节点数（收敛性由 --check 保证）"
+    },
+    "ny": {
+      "type": "integer",
+      "range": [5, 401],
+      "default": 41,
+      "desc": "厚度方向网格节点数"
+    }
+  },
+
+  "outputs_profile": [
+    "x_m",
+    "T_mean_K",
+    "theta_num",
+    "theta_analytic",
+    "rel_err"
+  ],
+
+  "outputs_summary": {
+    "Q_W_per_m": "根部热流，单位展向深度",
+    "Q_per_vol": "Q/(L*t)，单位体积的散热能力（轻量化目标）",
+    "tip_T_K": "端部平均温度",
+    "theta_tip": "端部无量纲过余温度",
+    "Q_rel_err": "与一维解析解的相对误差",
+    "error_max": "温度场与一维解析解的最大相对误差"
+  },
+
+  "objectives": {
+    "Q_W_per_m": "maximize",
+    "Q_per_vol": "maximize",
+    "tip_T_K": "minimize"
+  },
+
+  "quality_gates": {
+    "error_max": 0.01,
+    "Q_rel_err": 0.02,
+    "note": "超过阈值说明网格不足或超出薄肋适用区间（Bi=h*t/k > 0.1）"
+  },
+
+  "scan_spec": {
+    "base": "固定参数 dict",
+    "grid": "变量名 -> 取值列表，笛卡尔积展开",
+    "example": {
+      "base": {"k": 200.0, "tb": 350.0, "tinf": 300.0},
+      "grid": {"L": [0.03, 0.05, 0.07], "t": [0.001, 0.002, 0.003], "h": [30, 60, 90]}
+    }
+  },
+
+  "dependencies": {
+    "required": ["numpy"],
+    "optional": ["scipy"],
+    "note": "有 scipy 用稀疏直接解；没有则小网格退回 numpy 稠密解"
+  }
+}
