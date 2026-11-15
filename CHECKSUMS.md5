@@ -1,0 +1,15 @@
+467364a1a0c1b7dcfc5586ddec8d41b7  .gitattributes
+c49ba89685556bb8d38fcacbf2f0994e  __init__.py
+7a8c19768f9aa837c442acc80a695350  export_surrogate.py
+40c5732d40534d2d6b454be5151a438c  fin3d.py
+918ce93fec7b0f045b7824f2acef1394  icon.png
+d524f46f60d5b6006138912bbe99e09c  legacy_2d/fin2d.py
+5a4d3ece04879a2ba610d44d3f0f5240  legacy_2d/fit_surrogate.py
+b34b4936ff89ccfc377b84a995619cd9  legacy_2d/scan_demo.json
+2b29c9146244500771124fec57273d27  params.schema.json
+2224a7fb78d793dce21078b16840ae7d  predict.py
+fb27f24807c627bb58486d960db457c9  README.md
+891f3d14db2d9ab2bf6e2e3d8476dcfd  SKILL.md
+185b7b67c2b42e2d1476f91b6d0ee9d8  surrogate.npz
+d2be83bda000a27b3582924c224daf06  table_Lt_Q.csv
+d0550db1e6ced152b0dcf756a8785b8d  verify3d.py

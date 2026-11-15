@@ -1,114 +1,80 @@
 {
-  "skill": "fin-proxy-optimizer",
-  "version": "0.1.0",
-  "summary": "二维单肋稳态导热求解 + 参数扫描 + 代理模型寻优",
-  "units": {
-    "length": "m",
-    "temperature": "K",
-    "conductivity": "W/(m*K)",
-    "h": "W/(m^2*K)",
-    "heat_flux": "W/m (单位展向深度)",
-    "heat_flux_density": "W/m^3"
-  },
-
-  "inputs": {
-    "L": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/<owner>/fin-proxy-optimizer/params.schema.json",
+  "title": "fin-proxy-optimizer 3D single-fin contract",
+  "description": "三维单肋稳态导热的参数契约。fin3d.py 求解、predict.py 代理预测共用。单位：mm / W / K。",
+  "type": "object",
+  "properties": {
+    "L_mm": {
       "type": "number",
-      "unit": "m",
-      "range": [0.01, 0.2],
-      "default": 0.05,
-      "desc": "肋高（沿导热方向）"
+      "minimum": 30,
+      "maximum": 100,
+      "default": 50,
+      "description": "肋高（沿流动方向的长度），mm。代理模型仅在此区间内有效。"
     },
-    "t": {
+    "t_mm": {
       "type": "number",
-      "unit": "m",
-      "range": [0.0005, 0.01],
-      "default": 0.002,
-      "desc": "肋厚"
-    },
-    "k": {
-      "type": "number",
-      "unit": "W/(m*K)",
-      "range": [1, 500],
-      "default": 200,
-      "desc": "材料导热系数（铝≈200，铜≈400，钢≈45）"
+      "minimum": 1,
+      "maximum": 5,
+      "default": 2,
+      "description": "肋厚，mm。"
     },
     "h": {
       "type": "number",
-      "unit": "W/(m^2*K)",
-      "range": [1, 500],
+      "minimum": 10,
+      "maximum": 200,
       "default": 50,
-      "desc": "对流换热系数（自然对流 5~25，强制风冷 25~100）"
+      "description": "对流换热系数 W/(m^2*K)。自然对流 5-25，强制风冷 25-100，液冷/高风速 100-200。"
     },
-    "tb": {
+    "k": {
       "type": "number",
-      "unit": "K",
-      "range": [200, 1500],
+      "minimum": 50,
+      "maximum": 400,
+      "default": 200,
+      "description": "导热系数 W/(m*K)。钢~45，铝~200，铜~400。"
+    },
+    "W_mm": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 200,
+      "default": 20,
+      "description": "肋宽（展向），mm。仅用于算材料体积 V=L*t*W，不进入导热求解（两侧对称、展向无梯度）。"
+    },
+    "Tb": {
+      "type": "number",
+      "minimum": 200,
+      "maximum": 1500,
       "default": 350,
-      "desc": "根部温度"
+      "description": "根部定温，K。代理模型按 Tb=350、Tinf=300 训练，换 Tb/Tinf 需重算，不可线性缩放。"
     },
-    "tinf": {
+    "Tinf": {
       "type": "number",
-      "unit": "K",
-      "range": [200, 400],
+      "minimum": 200,
+      "maximum": 400,
       "default": 300,
-      "desc": "环境温度"
-    },
-    "nx": {
-      "type": "integer",
-      "range": [21, 1201],
-      "default": 201,
-      "desc": "长度方向网格节点数（收敛性由 --check 保证）"
-    },
-    "ny": {
-      "type": "integer",
-      "range": [5, 401],
-      "default": 41,
-      "desc": "厚度方向网格节点数"
+      "description": "环境温度，K。"
     }
   },
-
-  "outputs_profile": [
-    "x_m",
-    "T_mean_K",
-    "theta_num",
-    "theta_analytic",
-    "rel_err"
-  ],
-
-  "outputs_summary": {
-    "Q_W_per_m": "根部热流，单位展向深度",
-    "Q_per_vol": "Q/(L*t)，单位体积的散热能力（轻量化目标）",
-    "tip_T_K": "端部平均温度",
-    "theta_tip": "端部无量纲过余温度",
-    "Q_rel_err": "与一维解析解的相对误差",
-    "error_max": "温度场与一维解析解的最大相对误差"
-  },
-
-  "objectives": {
-    "Q_W_per_m": "maximize",
-    "Q_per_vol": "maximize",
-    "tip_T_K": "minimize"
-  },
-
-  "quality_gates": {
-    "error_max": 0.01,
-    "Q_rel_err": 0.02,
-    "note": "超过阈值说明网格不足或超出薄肋适用区间（Bi=h*t/k > 0.1）"
-  },
-
-  "scan_spec": {
-    "base": "固定参数 dict",
-    "grid": "变量名 -> 取值列表，笛卡尔积展开",
-    "example": {
-      "base": {"k": 200.0, "tb": 350.0, "tinf": 300.0},
-      "grid": {"L": [0.03, 0.05, 0.07], "t": [0.001, 0.002, 0.003], "h": [30, 60, 90]}
+  "required": ["L_mm", "t_mm", "h", "k"],
+  "additionalProperties": false,
+  "x-model-domain": {
+    "note": "predict.py 的硬边界。任一参数越界即返回 status=\"超范围\"，不做外推。",
+    "box": {
+      "L_mm": [30, 100],
+      "t_mm": [1, 5],
+      "h": [10, 200],
+      "k": [50, 400]
+    },
+    "fixed": {
+      "W_mm": 20,
+      "Tb": 350,
+      "Tinf": 300
     }
   },
-
-  "dependencies": {
-    "required": ["numpy"],
-    "optional": ["scipy"],
-    "note": "有 scipy 用稀疏直接解；没有则小网格退回 numpy 稠密解"
+  "x-outputs": {
+    "Q_W_per_m": "根部单位长度热流，W/m（沿展向每米）",
+    "Q_W": "单肋总散热，W。Q_W = Q_W_per_m * W_m / 1000",
+    "tip_T_K": "肋端平均温度，K",
+    "V_mm3": "单肋材料体积，mm^3。V = L*t*W"
   }
 }
