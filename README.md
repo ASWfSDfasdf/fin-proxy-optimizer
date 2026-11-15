@@ -16,8 +16,8 @@
 | 阶段 | 命令 | 耗时 | 产出 |
 |---|---|---|---|
 | 单点预测 | `python predict.py 50 2 40 200` | **0.37 ms** | Q (W/m) + tip_T (K) |
-| 单点真解 | `python fin3d.py --case case.json` | 10–30 s | 温度场 + Q |
-| 参数扫描 | `python fin3d.py --scan scan.json --outdir out` | 分钟级 | `results.csv` |
+| 单点真解 | `fin3d.solve(...)`（模块调用，**无 CLI**） | 3–10 s | Q + 温度场 |
+| 参数扫描 | `scan3d.py`（生成 results.csv 的脚本，**不在包内**，见 §6） | 分钟级 | `results.csv` |
 | 验证 | `python verify3d.py` | 2–5 min | 网格收敛/解析解/守恒 四项通过 |
 
 **不需要 GPU，不需要编译，不需要联网。** `predict.py` 只要 numpy；
@@ -36,13 +36,15 @@ python predict.py 50 2 40 200
 python predict.py 120 2 40 200
 # 超范围：L_mm=120 超出 [30, 100]
 
-python fin3d.py --case case.json          # 真解
+# 单点真解（fin3d 是模块，没有命令行参数）
+python -c "import fin3d; p=dict(L=.06,t=.003,W=.02,k=400,h=200); r=fin3d.solve(p,80,12,32); print(r['Q_per_span'])"
+# 979.0992082918154
+
 python verify3d.py                        # 验证
 ```
 
-```json
-{"L_mm": 50, "t_mm": 2, "h": 40, "k": 200, "W_mm": 20, "Tb": 350, "Tinf": 300}
-```
+> **注意：`fin3d.py` 是模块（import 使用），不提供命令行参数；直接执行 `python fin3d.py` 不会有任何输出，也不会报错。**
+> 上面那条 `python -c` 原样复制到终端即可出数（已在集群实测）。批量扫描请用 `scan3d.py`，它不在包内。
 
 ---
 
@@ -248,8 +250,10 @@ python verify3d.py                   # 2–5 min
 #SBATCH --time=00:40:00
 
 cd "$SLURM_SUBMIT_DIR"
-/public/software/apps/anaconda3/2023.09/bin/python3 fin3d.py \
-    --scan scan.json --outdir "out_${SLURM_JOB_ID}"
+# 单点真解（模块调用；fin3d.py 无 CLI，勿加 --case/--scan）
+/public/software/apps/anaconda3/2023.09/bin/python3 -c \
+  "import fin3d; p=dict(L=.06,t=.003,W=.02,k=400,h=200); r=fin3d.solve(p,80,12,32); print(r['Q_per_span'])"
+# 批量扫描：scan3d.py 不在包内，见 §6 扫描数据集
 ```
 
 ---
