@@ -8,8 +8,8 @@ d524f46f60d5b6006138912bbe99e09c  legacy_2d/fin2d.py
 b34b4936ff89ccfc377b84a995619cd9  legacy_2d/scan_demo.json
 2b29c9146244500771124fec57273d27  params.schema.json
 2224a7fb78d793dce21078b16840ae7d  predict.py
-e82b65b5e27b3a92312590cd14e8d529  README.md
-df7783d0749a745649efd8c6f3c243c6  SKILL.md
+38dc413be24a68909a376164da7268d3  README.md
+e34c4fb70e23418163b7e66b80210ce9  SKILL.md
 185b7b67c2b42e2d1476f91b6d0ee9d8  surrogate.npz
 d2be83bda000a27b3582924c224daf06  table_Lt_Q.csv
 d0550db1e6ced152b0dcf756a8785b8d  verify3d.py
